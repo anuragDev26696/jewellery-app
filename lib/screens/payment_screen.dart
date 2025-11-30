@@ -1,0 +1,220 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swarn_abhushan/models/payment.dart';
+import 'package:swarn_abhushan/services/billling_service.dart';
+import 'package:swarn_abhushan/services/payment_service.dart';
+import 'package:swarn_abhushan/utils/constant.dart';
+import '../models/bill.dart';
+import '../models/item.dart';
+import '../providers/billing_provider.dart';
+import '../providers/payment_provider.dart';
+
+class PaymentScreen extends ConsumerStatefulWidget {
+  final Map<String, dynamic> billDraft;
+
+  const PaymentScreen({super.key, required this.billDraft});
+
+  @override
+  ConsumerState<PaymentScreen> createState() => _PaymentScreenState();
+}
+
+class _PaymentScreenState extends ConsumerState<PaymentScreen> {
+  final _discountCtrl = TextEditingController(text: '0');
+  final _taxCtrl = TextEditingController(text: '0');
+  final _amountCtrl = TextEditingController();
+  final _notesCtrl = TextEditingController();
+  late BillingService _billingService;
+  String _mode = 'Cash';
+  late final PaymentService _paymentService;
+  late VoidCallback _onUserFieldChanged;
+
+  @override
+  void initState() {
+    super.initState();
+    _onUserFieldChanged = () => setState(() {});
+    for (final ctrl in [_discountCtrl, _taxCtrl, _amountCtrl, _notesCtrl]) {
+      ctrl.addListener(_onUserFieldChanged);
+    }
+    _paymentService = ref.read(paymentServiceProvider);
+    Future.microtask((){
+      _billingService = ref.read(billingServiceProvider);
+    });
+  }
+
+  @override
+  void dispose() {
+    for (final ctrl in [_discountCtrl, _taxCtrl, _amountCtrl, _notesCtrl]) {
+      ctrl.removeListener(_onUserFieldChanged);
+      ctrl.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _saveBill() async {
+    final customerId = (widget.billDraft['customerId'] ?? '') as String;
+    final billNumber = "BILL-${DateTime.now().millisecondsSinceEpoch}";
+    final discount = double.tryParse(_discountCtrl.text) ?? 0.0;
+    final tax = double.tryParse(_taxCtrl.text) ?? 0.0;
+    final paymentAmount = double.tryParse(_amountCtrl.text) ?? 0.0;
+
+    final bill = Bill(
+      billNumber: billNumber,
+      items: List.from(widget.billDraft['items'] as List<Item>),
+      discount: discount,
+      tax: tax,
+      notes: (_notesCtrl.text.trim()),
+      customerId: customerId,
+    );
+
+    // Save Bill
+    final newBill = await _billingService.addBill(bill);
+
+    // Save single Payment entry (if entered)
+    if (paymentAmount > 0) {
+      final req = Payment(amount: paymentAmount, paymentMode: _mode, billId: newBill.uuid!);
+      await _paymentService.addPayment(req);
+    }
+
+    if (mounted) Navigator.popUntil(context, (route) => route.isFirst);
+  }
+
+  bool get isvalidForm {
+    return _discountCtrl.text.isNotEmpty &&
+        _taxCtrl.text.isNotEmpty &&
+        _amountCtrl.text.isNotEmpty;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = widget.billDraft['items'] as List<Item>;
+    final discount = double.tryParse(_discountCtrl.text) ?? 0.0;
+    final tax = double.tryParse(_taxCtrl.text) ?? 0.0;
+    final calc = CalculateTax(items, discount, tax);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text("Payment Details")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          spacing: 12.0,
+          children: [
+            TextField(
+              controller: _discountCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Discount (₹)'),
+              onChanged: (_) => setState(() {}),
+            ),
+            TextField(
+              controller: _taxCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Tax (%)'),
+              onChanged: (_) => setState(() {}),
+            ),
+            DropdownButtonFormField<String>(
+              initialValue: _mode,
+              onChanged: (v) => setState(() => _mode = v!),
+              decoration: const InputDecoration(labelText: 'Payment Mode'),
+              items: const [
+                DropdownMenuItem(value: 'Cash', child: Text('Cash')),
+                DropdownMenuItem(value: 'Card', child: Text('Card')),
+                DropdownMenuItem(value: 'UPI', child: Text('UPI')),
+              ],
+            ),
+            TextField(
+              controller: _amountCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Payment Amount (₹)'),
+            ),
+            TextField(
+              controller: _notesCtrl,
+              decoration: const InputDecoration(labelText: 'Notes'),
+            ),
+            
+            const SizedBox(height: 12),
+            const Divider(),
+
+            // Summary table (no borders)
+            Table(
+              columnWidths: const {
+                0: FlexColumnWidth(1.5),
+                1: FlexColumnWidth(1),
+              },
+              children: [
+                _buildRow("Total", "₹${calc.subtotal.toStringAsFixed(2)}"),
+                _buildRow("Making", "₹${calc.totalMaking.toStringAsFixed(2)}"),
+                _buildRow("Discount", "₹${discount.toStringAsFixed(2)}"),
+                _buildRow("Tax (${_taxCtrl.text}%)", "₹${calc.taxAmount.toStringAsFixed(2)}"),
+                TableRow(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 6),
+                      child: Divider(),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 6),
+                      child: Divider(),
+                    ),
+                  ],
+                ),
+                _buildRow(
+                  "Grand Total",
+                  "₹${calc.grandTotal.toStringAsFixed(2)}",
+                  isBold: true,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 80),
+          ],
+        ),
+      ),
+
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _saveBill,
+              icon: const Icon(Icons.save),
+              label: const Text(
+                "Save & Generate Bill",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  TableRow _buildRow(String label, String value, {bool isBold = false}) {
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
+              fontSize: 15,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
