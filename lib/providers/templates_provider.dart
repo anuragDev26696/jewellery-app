@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:swarn_abhushan/models/template_state.dart';
@@ -36,6 +37,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
     try {
       _loader.show();
       var response = await _service.createNew(item.toMap());
+      debugPrint(response.toString());
       final newItem = Item.fromMap(response);
       state = state.copyWith(items: [newItem, ...state.items], isAdding: false);
       Toastr.show('Item added successfully');
@@ -55,6 +57,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
     try {
       _loader.show();
       final response = await _service.updateItem(uuid, updated.toMap());
+      debugPrint('update  ${response.toString()}');
       final updatedItem = Item.fromMap(response);
       final updatedList = state.items.map((t) => t.uuid == uuid ? updatedItem : t).toList();
       state = state.copyWith(items: updatedList, isUpdating: false);
