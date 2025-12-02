@@ -15,6 +15,7 @@ class _BillListScreenState extends ConsumerState<BillListScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchCtrl = TextEditingController();
   String? _keyword;
+  String? _statusFilter;
 
   @override
   void initState() {
@@ -65,6 +66,39 @@ class _BillListScreenState extends ConsumerState<BillListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Bills'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (v) async {
+              _statusFilter = v;
+              final service = ref.read(billingServiceProvider);
+              await service.fetchBills(_keyword, 1, 20, status: _statusFilter);
+            },
+            itemBuilder: (ctx) => const [
+              PopupMenuItem(value: '', child: Text('All')),
+              PopupMenuItem(value: 'Pending', child: Text('Pending')),
+              PopupMenuItem(value: 'Paid', child: Text('Paid')),
+              PopupMenuItem(value: 'Partial Paid', child: Text('Partial Paid')),
+            ],
+            icon: Stack(
+              children: [
+                const Icon(Icons.filter_list),
+                if(_statusFilter != null && _statusFilter!.isNotEmpty)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(

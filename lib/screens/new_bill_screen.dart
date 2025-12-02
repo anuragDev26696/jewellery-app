@@ -419,7 +419,6 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
       'items': _items,
       'grandTotal': calc.grandTotal,
     };
-    debugPrint('$billDraft billDraft');
 
     if(mounted){
       Navigator.push(
