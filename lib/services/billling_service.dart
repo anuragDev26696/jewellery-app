@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swarn_abhushan/models/bill.dart';
 import 'package:swarn_abhushan/providers/billing_provider.dart';
@@ -49,7 +48,7 @@ class BillingService {
     }
   }
 
-  Future<List<Bill>> fetchBills(String? keyword, int page, int limit, {String? status}) async {
+  Future<List<Bill>> fetchBills(String? keyword, int page, int limit) async {
     _loaderService.show();
     try {
       page = _prevSearch == keyword ? page : 1;
@@ -58,7 +57,6 @@ class BillingService {
         'billings/search',
         body: {
           if(keyword != null && keyword.trim().isNotEmpty) 'keyword': keyword,
-          if(status != null && status.trim().isNotEmpty) 'billStatus': status,
           'page': page,
           'limit': limit,
         }
