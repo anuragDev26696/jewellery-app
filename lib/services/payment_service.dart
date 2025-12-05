@@ -20,18 +20,16 @@ class PaymentService {
 
   Future<dynamic> addPayment(Payment newReq) async {
     try {
-      _loader.show();
       final res = await _api.post('payment', body: newReq.toJson());
       final payment = Payment.fromMap(res['payment']);
-      _paymentNotifier.addPayment(payment);
       final updatedBill = Bill.fromMap(res['updatedBill']);
-      _ref.read(billingNotifierProvider.notifier).updateBill(updatedBill);
       Toastr.show('Payment created successfully');
-      return res;
+      return {
+        'payment': payment,
+        'updatedBill': updatedBill,
+      };
     } catch (e) {
       rethrow;
-    } finally {
-      _loader.hide();
     }
   }
 

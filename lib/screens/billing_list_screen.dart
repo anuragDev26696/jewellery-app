@@ -13,7 +13,7 @@ class BillListScreen extends ConsumerStatefulWidget {
 
 class _BillListScreenState extends ConsumerState<BillListScreen> {
   final ScrollController _scrollController = ScrollController();
-  final TextEditingController _searchCtrl = TextEditingController();
+  // final TextEditingController _searchCtrl = TextEditingController();
   String? _keyword;
   String? _statusFilter;
 
@@ -38,26 +38,23 @@ class _BillListScreenState extends ConsumerState<BillListScreen> {
   }
 
   Future<void> _fetchInitial() async {
-    final service = ref.read(billingServiceProvider);
-    await service.fetchBills(null, 1, 20);
+    await ref.read(billingNotifierProvider.notifier).fetchBills(null, 1, 20);
   }
 
   Future<void> _loadMore() async {
-    final service = ref.read(billingServiceProvider);
     final st = ref.read(billingNotifierProvider);
-    await service.fetchBills(_keyword, st.page + 1, st.limit);
+    await ref.read(billingNotifierProvider.notifier).fetchBills(_keyword, st.page + 1, st.limit);
   }
 
   Future<void> _refresh() async {
-    final service = ref.read(billingServiceProvider);
-    await service.fetchBills(_keyword, 1, 20);
+    await ref.read(billingNotifierProvider.notifier).fetchBills(_keyword, 1, 20);
   }
 
-  void _onSearch(String value) async {
-    _keyword = value.trim();
-    final service = ref.read(billingServiceProvider);
-    await service.fetchBills(_keyword, 1, 20);
-  }
+  // void _onSearch(String value) async {
+  //   _keyword = value.trim();
+  //   final service = ref.read(billingServiceProvider);
+  //   await service.fetchBills(_keyword, 1, 20);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -158,18 +155,18 @@ class _BillListScreenState extends ConsumerState<BillListScreen> {
   }
 
   // ░░░░ SEARCH BAR WIDGET ░░░░
-  Widget _buildSearchBar() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-      child: TextField(
-        controller: _searchCtrl,
-        onChanged: _onSearch,
-        decoration: InputDecoration(
-          hintText: "Search by name, phone, item...",
-          prefixIcon: const Icon(Icons.search),
-          contentPadding: const EdgeInsets.symmetric(vertical: 0),
-        ),
-      ),
-    );
-  }
+  // Widget _buildSearchBar() {
+  //   return Container(
+  //     padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+  //     child: TextField(
+  //       controller: _searchCtrl,
+  //       onChanged: _onSearch,
+  //       decoration: InputDecoration(
+  //         hintText: "Search by name, phone, item...",
+  //         prefixIcon: const Icon(Icons.search),
+  //         contentPadding: const EdgeInsets.symmetric(vertical: 0),
+  //       ),
+  //     ),
+  //   );
+  // }
 }

@@ -6,7 +6,11 @@ class Toastr {
     final context = globalNavigatorKey.currentContext;
     if (context == null) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.of(context);
+    // messenger.hideCurrentSnackBar();
+    messenger.clearSnackBars();
+
+    messenger.showSnackBar(
       SnackBar(
         content: Text(
           message,
