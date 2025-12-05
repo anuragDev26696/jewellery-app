@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swarn_abhushan/models/payment.dart';
 import 'package:swarn_abhushan/providers/payment_provider.dart';
 import 'package:swarn_abhushan/services/billling_service.dart';
-import 'package:swarn_abhushan/services/payment_service.dart';
 import 'package:swarn_abhushan/utils/constant.dart';
 import 'package:swarn_abhushan/utils/toastr.dart';
 import '../models/bill.dart';
@@ -25,40 +24,11 @@ class BillPreviewScreen extends ConsumerStatefulWidget {
 }
 
 class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
-  // bool _showPayments = false;
   final _newPaymentCtrl = TextEditingController();
   String _selectedPaymentMode = 'Cash';
-  final List<String> _paymentModes = ['Cash', 'Card', 'UPI', 'Net Banking'];
-  late PaymentService _paymentService;
+  final List<String> _paymentModes = ['Cash', 'Card', 'UPI'];
   late BillingService _billingService;
-
-  bool get paymentProcess => ref.read(paymentNotifierProvider).isAdding;
   late Bill _bill;
-
-  // Future<void> _exportAndShare(BuildContext context) async {
-  //   try {
-  //     Uint8List bytes;
-  //     if (_bill != null) {
-  //       bytes = await PdfGenerator.generateInvoicePdf(_bill!);
-  //     } else {
-  //       bytes = await PdfGenerator.generateFromTemporary(
-  //         customerName: widget.temporaryCustomerName ?? '',
-  //         customerPhone: widget.temporaryCustomerPhone ?? '',
-  //         items: widget.temporaryItems ?? [],
-  //         discount: widget.temporaryDiscount ?? 0,
-  //         notes: widget.temporaryNotes ?? '',
-  //         tax: widget.temporaryTax ?? 0,
-  //         userId: '#123',
-  //       );
-  //     }
-  //     await Printing.sharePdf(
-  //       bytes: bytes,
-  //       filename: 'invoice_${DateTime.now().millisecondsSinceEpoch}.pdf',
-  //     );
-  //   } catch (e) {
-  //     if(mounted) Toastr.show('Export failed: $e', success: false);
-  //   }
-  // }
 
   Future<void> _download() async {
     showDialog(
@@ -80,7 +50,7 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
 
   Future<void> _fetchBillPayments() async {
     if(_bill.uuid == null || _bill.uuid!.trim().isEmpty) return;
-    await _paymentService.getPaymentsForBill(_bill.uuid!, 1);
+    await ref.read(paymentServiceProvider).getPaymentsForBill(_bill.uuid!, 1);
   }
 
   @override
@@ -96,7 +66,6 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
       setState(() {});
     });
     Future.microtask(() async {
-      _paymentService = ref.read(paymentServiceProvider);
       _billingService = ref.read(billingServiceProvider);
       await _fetchBillPayments();
     });
@@ -132,27 +101,6 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
             tooltip: 'Export & Share PDF',
             onPressed: () => _download(),
           ),
-          // IconButton(
-          //   icon: const Icon(Icons.delete_forever),
-          //   tooltip: 'Delete Bill',
-          //   onPressed: () async {
-          //     final confirmed = await showDialog<bool>(
-          //       context: context,
-          //       builder: (c) => AlertDialog(
-          //         title: const Text('Delete bill?'),
-          //         actions: [
-          //           TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
-          //           TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete')),
-          //         ],
-          //       ),
-          //     );
-          //     if (confirmed == true) {
-          //       await _billingService.deleteBill(_bill.uuid!);
-          //       if(!mounted || !context.mounted) return;
-          //       if (Navigator.canPop(context)) Navigator.pop(context);
-          //     }
-          //   },
-          // ),
         ],
       ),
       bottomNavigationBar: (_bill.dueAmount != null && _bill.dueAmount! > 0) ? Padding(
@@ -389,9 +337,15 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
                 ),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _newPaymentCtrl.text.isEmpty  || paymentProcess ? null : () => _makePayment(context),
-                    child: paymentProcess ? const CircularProgressIndicator(strokeWidth: 1.2) : const Text('Add Payment'),
+                  child: Consumer(builder: (context, ref, _) {
+                    final isAdding = ref.watch(paymentNotifierProvider).isAdding;
+                    return ElevatedButton(
+                      onPressed: _newPaymentCtrl.text.isEmpty || isAdding ? null : () => _makePayment(context),
+                      child: isAdding
+                          ? const CircularProgressIndicator(strokeWidth: 2.5)
+                          : const Text('Add Payment'),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -406,17 +360,20 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
   }
 
   Future<void> _makePayment(BuildContext context) async {
-    final amt = double.tryParse(_newPaymentCtrl.text);
-    if (amt == null || amt <= 0) {
-      Toastr.show('Enter a valid amount', success: false);
-      return;
+    try {
+      final amt = double.tryParse(_newPaymentCtrl.text);
+      if (amt == null || amt <= 0) {
+        Toastr.show('Enter a valid amount', success: false);
+        return;
+      }
+      final req = Payment(billId: _bill.uuid!, amount: amt, paymentMode: _selectedPaymentMode);
+      await ref.read(paymentNotifierProvider.notifier).addPayment(req);
+      _newPaymentCtrl.clear();
+      if (!context.mounted) return;
+      setState(() => _bill = ref.read(billingNotifierProvider).bills.firstWhere((u) => u.uuid == _bill.uuid));
+      Navigator.pop(context);
+    } catch (e) {
+      // Error handled in provider
     }
-    final req = Payment(billId: _bill.uuid!, amount: amt, paymentMode: _selectedPaymentMode);
-    final res = await _paymentService.addPayment(req);
-    _newPaymentCtrl.clear();
-    if (!context.mounted) return; 
-    Navigator.pop(context);
-    setState(() => _bill = Bill.fromMap(res['updatedBill']));
-    ref.read(billingNotifierProvider.notifier).updateBill(_bill);
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swarn_abhushan/models/payment.dart';
-import 'package:swarn_abhushan/services/billling_service.dart';
 import 'package:swarn_abhushan/services/payment_service.dart';
 import 'package:swarn_abhushan/utils/constant.dart';
 import '../models/bill.dart';
@@ -23,7 +22,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   final _taxCtrl = TextEditingController(text: '0');
   final _amountCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
-  late BillingService _billingService;
   String _mode = 'Cash';
   late final PaymentService _paymentService;
   late VoidCallback _onUserFieldChanged;
@@ -35,9 +33,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     for (final ctrl in [_discountCtrl, _taxCtrl, _amountCtrl, _notesCtrl]) {
       ctrl.addListener(_onUserFieldChanged);
     }
-    _paymentService = ref.read(paymentServiceProvider);
     Future.microtask((){
-      _billingService = ref.read(billingServiceProvider);
+      _paymentService = ref.read(paymentServiceProvider);
     });
   }
 
@@ -65,14 +62,19 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       notes: (_notesCtrl.text.trim()),
       customerId: customerId,
     );
+    Bill newBill;
 
     // Save Bill
-    final newBill = await _billingService.addBill(bill);
+    try {
+      newBill = await ref.read(billingNotifierProvider.notifier).addBill(bill);
+    } catch (_) {
+      return;
+    }
 
     // Save single Payment entry (if entered)
     if (paymentAmount > 0) {
       final req = Payment(amount: paymentAmount, paymentMode: _mode, billId: newBill.uuid!);
-      await _paymentService.addPayment(req);
+      await ref.read(paymentNotifierProvider.notifier).addPayment(req).catchError((_) {});
     }
 
     if (mounted) Navigator.popUntil(context, (route) => route.isFirst);
@@ -174,13 +176,19 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           padding: const EdgeInsets.all(16),
           child: SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _saveBill,
-              icon: const Icon(Icons.save),
-              label: const Text(
-                "Save & Generate Bill",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+            child: Consumer(builder: (context, ref, _) {
+              final isPaymentAdding = ref.watch(paymentNotifierProvider).isAdding;
+              final isBillAdding = ref.watch(billingNotifierProvider).isAdding;
+              final isDisabled = isPaymentAdding || isBillAdding;
+              return ElevatedButton.icon(
+                onPressed: isDisabled ? null : _saveBill,
+                icon: const Icon(Icons.save),
+                label: const Text(
+                  "Save & Generate Bill",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                )
+              );
+              },
             ),
           ),
         ),

@@ -12,7 +12,7 @@ class Api {
     'Content-Type': 'application/json',
   };
   final String baseUrl = 'https://jewelry-backend-xu5k.onrender.com/api/';
-  final String devUrl = 'http://10.168.136.118:4000/api/';
+  final String devUrl = 'http://10.183.59.118:4000/api/';
 
   Future<Map<String, dynamic>> _send(
     String method,
@@ -21,7 +21,7 @@ class Api {
     Map<String, String>? queryParameters,
     dynamic body,
   }) async {
-    Uri uri = Uri.parse(baseUrl + path);
+    Uri uri = Uri.parse(devUrl + path);
     if (queryParameters != null && queryParameters.isNotEmpty) {
       uri = uri.replace(queryParameters: {...uri.queryParameters, ...queryParameters});
     }
@@ -56,12 +56,6 @@ class Api {
         default:
           throw Exception('Unsupported HTTP method: $method');
       }
-
-      // final result = {
-      //   'statusCode': response.statusCode,
-      //   'body': _decodeResponse(response.body),
-      //   'headers': response.headers,
-      // };
       final decodedBody = _decodeResponse(response.body);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {

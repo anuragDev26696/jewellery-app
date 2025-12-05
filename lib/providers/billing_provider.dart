@@ -1,15 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:swarn_abhushan/services/billling_service.dart';
+import 'package:swarn_abhushan/services/loader_service.dart';
 import '../models/bill.dart';
 
 final billingNotifierProvider = StateNotifierProvider<BillingNotifier, BillState>((ref) {
-  return BillingNotifier();
+  return BillingNotifier(ref);
 });
 
 class BillingNotifier extends StateNotifier<BillState> {
+  final Ref _ref;
+  late final BillingService _service;
+  late final LoaderService _loader;
 
-  BillingNotifier() : super(const BillState());
+  BillingNotifier(this._ref) : super(const BillState()){
+    _service = _ref.read(billingServiceProvider);
+    _loader = _ref.read(loaderServiceProvider);
+  }
 
   Future<void> loadBills({
     required List<Bill> bills,
@@ -31,22 +38,72 @@ class BillingNotifier extends StateNotifier<BillState> {
     );
   }
 
-  void addBill(Bill bill) {
-    state = state.copyWith(bills: [bill, ...state.bills]);
+  Future<Bill> addBill(Bill reqData) async {
+    state = state.copyWith(isAdding: true);
+    _loader.show();
+    try {
+      final bill = await _service.addBill(reqData);
+      state = state.copyWith(bills: [bill, ...state.bills]);
+      return bill;
+    } finally {
+      state = state.copyWith(isAdding: false);
+      _loader.hide();
+    }
   }
 
-  void updateBill(Bill updatedBill) {
-    final updatedList = state.bills.map((t) => t.uuid == updatedBill.uuid ? updatedBill : t).toList();
-    state = state.copyWith(bills: updatedList);
+  Future<void> updateBill(String id, Bill bill, {bool byPayment = false}) async {
+    if(byPayment) {
+      state = state.copyWith(
+        bills: state.bills.map((b) => b.uuid == id ? bill : b).toList(),
+      );
+      return;
+    }
+    _loader.show();
+    try {
+      final updated = await _service.updateBill(id, bill);
+      state = state.copyWith(
+        bills: state.bills.map((b) => b.uuid == id ? updated : b).toList(),
+      );
+    } finally {
+      _loader.hide();
+    }
   }
 
-  void deleteBill(String id) {
-    final updatedList = state.bills.where((u) => u.uuid != id).toList();
-    state = state.copyWith(bills: updatedList);
+  Future<void> deleteBill(String id) async {
+    _loader.show();
+    try {
+      await _service.deleteBill(id);
+      state = state.copyWith(
+        bills: state.bills.where((b) => b.uuid != id).toList(),
+      );
+    } finally {
+      _loader.hide();
+    }
   }
 
   void clearAll() {
     state = state.copyWith(bills: [], total: 0, isLastPage: true, isPreviousPage: false);
+  }
+
+  Future<void> fetchBills(String? keyword, int page, int limit, {String? status, String? customerId}) async {
+    _loader.show();
+
+    try {
+      final response = await _service.fetchBills(keyword, page,limit, status: status, customerId: customerId);
+      final List data = response["data"] ?? [];
+      final bills = data.map((e) => Bill.fromMap(e)).toList();
+      loadBills(
+        bills: bills,
+        total: response["total"] ?? bills.length,
+        page: response["page"] ?? 1,
+        limit: response["limit"] ?? limit,
+        isLastPage: response["isLastPage"] ?? false,
+        isPreviousPage: response["isPreviousPage"] ?? false,
+        append: page > 1,
+      );
+    } finally {
+      _loader.hide();
+    }
   }
 
   /// Search bills by customer name, phone, or item name (case-insensitive)
