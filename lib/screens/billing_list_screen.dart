@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swarn_abhushan/models/bill.dart';
 import 'package:swarn_abhushan/providers/billing_provider.dart';
 import 'package:swarn_abhushan/screens/new_bill_screen.dart';
 import 'package:swarn_abhushan/utils/bill_item.dart';
+import 'package:swarn_abhushan/utils/constant.dart';
 
 class BillListScreen extends ConsumerStatefulWidget {
   const BillListScreen({super.key});
@@ -15,6 +17,7 @@ class _BillListScreenState extends ConsumerState<BillListScreen> {
   final ScrollController _scrollController = ScrollController();
   // final TextEditingController _searchCtrl = TextEditingController();
   String? _keyword;
+  String? _selectedStatus;
 
   @override
   void initState() {
@@ -37,16 +40,16 @@ class _BillListScreenState extends ConsumerState<BillListScreen> {
   }
 
   Future<void> _fetchInitial() async {
-    await ref.read(billingNotifierProvider.notifier).fetchBills(null, 1, 20);
+    await ref.read(billingNotifierProvider.notifier).fetchBills(null, 1, 20, status: _selectedStatus);
   }
 
   Future<void> _loadMore() async {
     final st = ref.read(billingNotifierProvider);
-    await ref.read(billingNotifierProvider.notifier).fetchBills(_keyword, st.page + 1, st.limit);
+    await ref.read(billingNotifierProvider.notifier).fetchBills(_keyword, st.page + 1, st.limit, status: _selectedStatus);
   }
 
   Future<void> _refresh() async {
-    await ref.read(billingNotifierProvider.notifier).fetchBills(_keyword, 1, 20);
+    await ref.read(billingNotifierProvider.notifier).fetchBills(_keyword, 1, 20, status: _selectedStatus);
   }
 
   // void _onSearch(String value) async {
@@ -67,10 +70,15 @@ class _BillListScreenState extends ConsumerState<BillListScreen> {
         child: Column(
           children: [
             // _buildSearchBar(),
-
-            // ░░░░░░ LIST WITH REFRESH ░░░░░░
+            _paymentStatusFilter(context, state.bills),
             Expanded(
-              child: RefreshIndicator(
+              child: state.isLoading && state.bills.isEmpty ? Center(
+                child: CircularProgressIndicator(),
+              ) : state.bills.isEmpty ? Center(
+                child: Text("No bills found."),
+              ) : 
+              // ░░░░░░ LIST WITH REFRESH ░░░░░░
+              RefreshIndicator(
                 onRefresh: _refresh,
                 child: ListView.builder(
                   controller: _scrollController,
@@ -116,6 +124,38 @@ class _BillListScreenState extends ConsumerState<BillListScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _paymentStatusFilter(BuildContext context, List<Bill> bills) {
+    final gold = Theme.of(context).colorScheme.primary;
+    return SizedBox(
+      height: 48,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        scrollDirection: Axis.horizontal,
+        itemCount: paymentFilters.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final item = paymentFilters[index];
+          final isSelected = _selectedStatus == item["value"];
+
+          return ChoiceChip(
+            selected: isSelected,
+            onSelected: (_) {
+              setState(() {
+                _selectedStatus = item["value"];
+              });
+              _fetchInitial();
+            },
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            label: Text(item["label"]!, style: TextStyle(fontSize: 12.0),),
+            side: BorderSide(color: isSelected ? gold.withValues(alpha: 0.2) : Color.fromARGB(255, 60, 60, 60)),
+          );
+        },
       ),
     );
   }

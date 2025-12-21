@@ -147,6 +147,17 @@ ThemeData buildAppTheme() {
     ),
     tabBarTheme: TabBarThemeData(
       indicatorColor: gold
-    )
+    ),
+    chipTheme: base.chipTheme.copyWith(
+      backgroundColor: Colors.transparent,
+      selectedColor: gold.withValues(alpha: 0.2),
+      secondarySelectedColor: gold.withValues(alpha: 0.2),
+      checkmarkColor: gold,
+      labelStyle: TextStyle(color: offWhite, fontSize: 12.0),
+      secondaryLabelStyle: TextStyle(color: offWhite, fontSize: 12.0),
+      brightness: Brightness.dark,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      surfaceTintColor: gold
+    ),
   );
 }

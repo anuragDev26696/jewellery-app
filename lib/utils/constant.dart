@@ -104,6 +104,14 @@ class TwoDecimalNumberFormatter extends TextInputFormatter {
     );
   }
 }
+
+const List<Map<String, String?>> paymentFilters = [
+  {"label": "All", "value": null},
+  {"label": "Paid", "value": "Paid"},
+  {"label": "Pending", "value": "Pending"},
+  {"label": "Partial Paid", "value": "Partial Paid"},
+];
+
 class CommonUtils {
   static Widget buildLabel(String label, String controlName, FormGroup form) {
     final control = form.control(controlName);
