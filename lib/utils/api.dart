@@ -21,7 +21,7 @@ class Api {
     Map<String, String>? queryParameters,
     dynamic body,
   }) async {
-    Uri uri = Uri.parse(devUrl + path);
+    Uri uri = Uri.parse(baseUrl + path);
     if (queryParameters != null && queryParameters.isNotEmpty) {
       uri = uri.replace(queryParameters: {...uri.queryParameters, ...queryParameters});
     }
