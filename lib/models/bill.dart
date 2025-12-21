@@ -102,7 +102,7 @@ class Bill {
   double? total;
   double? dueAmount;
   double tax;
-  String notes;
+  String? notes;
   String customerId;
   PaymentStatus paymentStatus;
 
@@ -130,9 +130,45 @@ class Bill {
   double get taxamount => (taxableAmount * tax) / 100.0;
   double get grandTotal => taxableAmount + taxamount;
 
+  Bill copyWith({
+    String? uuid,
+    String? billNumber,
+    String? customerName,
+    String? customerPhone,
+    DateTime? createdAt,
+    List<Item>? items,
+    double? discount,
+    double? subtotal,
+    double? taxAmount,
+    double? total,
+    double? dueAmount,
+    double? tax,
+    String? notes,
+    String? customerId,
+    PaymentStatus? paymentStatus,
+  }) {
+    return Bill(
+      uuid: uuid ?? this.uuid,
+      billNumber: billNumber ?? this.billNumber,
+      customerId: customerId ?? this.customerId,
+      customerName: customerName ?? this.customerName,
+      customerPhone: customerPhone ?? this.customerPhone,
+      createdAt: createdAt ?? this.createdAt,
+      items: items ?? this.items,
+      discount: discount ?? this.discount,
+      subtotal: subtotal ?? this.subtotal,
+      taxAmount: taxAmount ?? this.taxAmount,
+      total: total ?? this.total,
+      dueAmount: dueAmount ?? this.dueAmount,
+      tax: tax ?? this.tax,
+      notes: notes ?? this.notes,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
-      'uuid': uuid,
+      if (uuid != null && uuid!.isNotEmpty) 'uuid': uuid,
       'billNumber': billNumber,
       'items': items.map((i) => i.toMap()).toList(),
       'discount': discount,

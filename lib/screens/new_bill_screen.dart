@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swarn_abhushan/models/user.dart';
 import 'package:swarn_abhushan/providers/user_provider.dart';
-import 'package:swarn_abhushan/screens/templates_screen.dart';
 import 'package:swarn_abhushan/services/user_service.dart';
+import 'package:swarn_abhushan/utils/bill_item_header.dart';
 import 'package:swarn_abhushan/utils/constant.dart';
 import 'package:swarn_abhushan/utils/item_form_dialog.dart';
 import '../models/item.dart';
-import '../screens/payment_screen.dart';
-import '../providers/templates_provider.dart'; // 999881230647 aws account number
+import '../screens/payment_screen.dart'; // 999881230647 aws account number
 
 class NewBillScreen extends ConsumerStatefulWidget {
   const NewBillScreen({super.key});
@@ -77,7 +76,7 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
     _customerNameCtrl.addListener(_onUserFieldChanged);
     _customerPhoneCtrl.addListener(_onUserFieldChanged);
     Future.microtask(() async {
-      await userService.fetchUsers(null, 1, 50);
+      await ref.read(userNotifierProvider.notifier).searchUsers(null, 1, 50);
     });
   }
 
@@ -92,7 +91,6 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final templates = ref.watch(templateNotifierProvider).items;
     CalculateTax calc = CalculateTax(_items, 0, 0);
     final gold = Theme.of(context).colorScheme.primary;
     return Scaffold(
@@ -142,96 +140,12 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
                   ),
                 ],
         
-              Row(
-                children: [
-                  Text(
-                    'Items (${_items.length})',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const Spacer(),
-                  ElevatedButton.icon(
-                    onPressed: () => _addItemDialog(),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Item'),
-                  ),
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (ctx) => SizedBox(
-                          height: 360,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                child: Container(
-                                  height: 4.0,
-                                  width: 40.0,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-                                    borderRadius: BorderRadius.circular(2.0),
-                                  ),
-                                ),
-                              ),
-                              ListTile(
-                                title: const Text('Templates'),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.add),
-                                  onPressed: () {
-                                    Navigator.pop(ctx);
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const TemplatesScreen(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              const Divider(height: 1),
-                              Expanded(
-                                child: templates.isEmpty
-                                    ? const Center(
-                                        child: Text(
-                                            'No templates. Add from Templates screen.'),
-                                      )
-                                    : ListView.builder(
-                                        itemCount: templates.length,
-                                        itemBuilder: (c, idx) {
-                                          final t = templates[idx];
-                                          return ListTile(
-                                            title: Text(
-                                                t.name.isNotEmpty ? t.name : t.type),
-                                            subtitle: Text(
-                                                'Wt:${t.weight}g • Rate:₹${t.pricePerGram} • Making:₹${t.makingCharge}'),
-                                            trailing: IconButton(
-                                              icon:
-                                                  const Icon(Icons.add_circle_outline),
-                                              onPressed: () {
-                                                Navigator.pop(ctx);
-                                                _addItemDialog(prefill: t);
-                                              },
-                                            ),
-                                          );
-                                        },
-                                      ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.flash_on),
-                    label: const Text('Quick Add'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: gold,
-                      side: BorderSide(color: gold),
-                    ),
-                  ),
-                ],
+              BillItemHeader(
+                itemCount: _items.length,
+                onAddItem: _addItemDialog,
+                onQuickAddFromTemplate: (t) => _addItemDialog(prefill: t),
               ),
+
               ConstrainedBox(
                 constraints: BoxConstraints(minHeight: 100.0, maxHeight: MediaQuery.of(context).size.height * 0.5,),
                 child: _items.isEmpty
@@ -255,10 +169,8 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
                               }
                             },
                             itemBuilder: (c) => [
-                              const PopupMenuItem(
-                                  value: 'edit', child: Text('Edit')),
-                              const PopupMenuItem(
-                                  value: 'remove', child: Text('Remove')),
+                              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                              const PopupMenuItem(value: 'remove', child: Text('Remove')),
                             ],
                           ),
                         ),
@@ -318,7 +230,8 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
       return localFiltered;
     }
     try {
-      final remoteUsers = await userService.fetchUsers(lower, 1, 20);
+      await ref.read(userNotifierProvider.notifier).searchUsers(lower, 1, 20);
+      final remoteUsers = ref.read(userNotifierProvider).users;
       final Map<String, User> merged = {
         for (var u in localFiltered)
           if (u.uuid != null) u.uuid!: u,
@@ -419,7 +332,6 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
       'items': _items,
       'grandTotal': calc.grandTotal,
     };
-    debugPrint('$billDraft billDraft');
 
     if(mounted){
       Navigator.push(
@@ -440,8 +352,8 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
     final phone = _customerPhoneCtrl.text.trim();
 
     try {
-      final userService = ref.read(userServiceProvider);
-      final newUser = await userService.createUser(name: name, phone: phone);
+      final reqUser = User(name: name, mobile: phone);
+      final newUser = await ref.read(userNotifierProvider.notifier).addUser(reqUser);
       if (mounted) {
         setState(() {
           _isAddingNewUser = false;

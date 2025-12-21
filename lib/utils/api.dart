@@ -6,13 +6,13 @@ import 'package:http/http.dart' as http;
 import 'package:swarn_abhushan/utils/toastr.dart';
 
 class Api {
-  final Duration defaultTimeout = const Duration(seconds: 30);
+  final Duration defaultTimeout = const Duration(seconds: 100);
   final Map<String, String> defaultHeaders = {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
   };
   final String baseUrl = 'https://jewelry-backend-xu5k.onrender.com/api/';
-  final String devUrl = 'http://10.183.59.118:4000/api/';
+  final String devUrl = 'http://10.228.177.118:4000/api/';
 
   Future<Map<String, dynamic>> _send(
     String method,
@@ -21,7 +21,7 @@ class Api {
     Map<String, String>? queryParameters,
     dynamic body,
   }) async {
-    Uri uri = Uri.parse(devUrl + path);
+    Uri uri = Uri.parse(baseUrl + path);
     if (queryParameters != null && queryParameters.isNotEmpty) {
       uri = uri.replace(queryParameters: {...uri.queryParameters, ...queryParameters});
     }

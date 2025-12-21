@@ -51,20 +51,23 @@ class BillingNotifier extends StateNotifier<BillState> {
     }
   }
 
-  Future<void> updateBill(String id, Bill bill, {bool byPayment = false}) async {
+  Future<Bill> updateBill(String id, Bill bill, {bool byPayment = false}) async {
     if(byPayment) {
       state = state.copyWith(
         bills: state.bills.map((b) => b.uuid == id ? bill : b).toList(),
       );
-      return;
+      return bill;
     }
+    state = state.copyWith(isUpdating: true);
     _loader.show();
     try {
       final updated = await _service.updateBill(id, bill);
       state = state.copyWith(
         bills: state.bills.map((b) => b.uuid == id ? updated : b).toList(),
       );
+      return updated;
     } finally {
+      state = state.copyWith(isUpdating: false);
       _loader.hide();
     }
   }
@@ -87,6 +90,10 @@ class BillingNotifier extends StateNotifier<BillState> {
 
   Future<void> fetchBills(String? keyword, int page, int limit, {String? status, String? customerId}) async {
     _loader.show();
+    state = state.copyWith(isLoading: true);
+    if(page == 1) {
+      state = state.copyWith(bills: [], total: 0, isPreviousPage: false);
+    }
 
     try {
       final response = await _service.fetchBills(keyword, page,limit, status: status, customerId: customerId);
@@ -102,6 +109,7 @@ class BillingNotifier extends StateNotifier<BillState> {
         append: page > 1,
       );
     } finally {
+      state = state.copyWith(isLoading: false);
       _loader.hide();
     }
   }
