@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swarn_abhushan/models/payment.dart';
-import 'package:swarn_abhushan/services/payment_service.dart';
 import 'package:swarn_abhushan/utils/constant.dart';
 import '../models/bill.dart';
 import '../models/item.dart';
@@ -23,7 +22,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   final _amountCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
   String _mode = 'Cash';
-  late final PaymentService _paymentService;
   late VoidCallback _onUserFieldChanged;
 
   @override
@@ -33,9 +31,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     for (final ctrl in [_discountCtrl, _taxCtrl, _amountCtrl, _notesCtrl]) {
       ctrl.addListener(_onUserFieldChanged);
     }
-    Future.microtask((){
-      _paymentService = ref.read(paymentServiceProvider);
-    });
   }
 
   @override
@@ -67,7 +62,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     // Save Bill
     try {
       newBill = await ref.read(billingNotifierProvider.notifier).addBill(bill);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error saving bill: $e');
       return;
     }
 
@@ -102,13 +98,15 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           children: [
             TextField(
               controller: _discountCtrl,
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [TwoDecimalNumberFormatter(maxValue: calc.subtotal)],
               decoration: const InputDecoration(labelText: 'Discount (₹)'),
               onChanged: (_) => setState(() {}),
             ),
             TextField(
               controller: _taxCtrl,
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [TwoDecimalNumberFormatter(maxValue: 100)],
               decoration: const InputDecoration(labelText: 'Tax (%)'),
               onChanged: (_) => setState(() {}),
             ),
@@ -124,7 +122,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             ),
             TextField(
               controller: _amountCtrl,
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [TwoDecimalNumberFormatter(maxValue: calc.grandTotal)],
               decoration: const InputDecoration(labelText: 'Payment Amount (₹)'),
             ),
             TextField(

@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swarn_abhushan/models/item.dart';
 import 'package:swarn_abhushan/providers/templates_provider.dart';
 import 'package:swarn_abhushan/screens/billing_list_screen.dart';
-import 'package:swarn_abhushan/screens/customer_ledger_screen.dart';
 import 'package:swarn_abhushan/screens/templates_screen.dart';
+import 'package:swarn_abhushan/screens/users_screen.dart';
 import 'package:swarn_abhushan/utils/banner_carousel.dart';
 import 'package:swarn_abhushan/utils/bill_item.dart';
 import 'new_bill_screen.dart';
@@ -19,16 +19,13 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchCtrl = TextEditingController();
-  final String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() async {
-      final notifier = ref.read(templateNotifierProvider.notifier);
-      final billNotifier = ref.read(billingNotifierProvider.notifier);
-      await notifier.searchItems(null);
-      await billNotifier.fetchBills(null, 1, 5);
+      await ref.read(templateNotifierProvider.notifier).searchItems(null);
+      await ref.read(billingNotifierProvider.notifier).fetchBills(null, 1, 5);
     });
   }
 
@@ -41,8 +38,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final billProvider = ref.watch(billingNotifierProvider);
-    final billNotifier = ref.read(billingNotifierProvider.notifier);
-    final filtered = _searchQuery.trim().isEmpty ? billProvider.bills : billNotifier.searchBills(_searchQuery);
+    final filtered = billProvider.bills.take(5).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -56,9 +52,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TemplatesScreen())),
           ),
           IconButton(
-            icon: const Icon(Icons.account_balance_wallet),
-            tooltip: 'Customer Ledger',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerLedgerScreen())),
+            icon: const Icon(Icons.people_alt_sharp),
+            tooltip: 'Users',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UserListPage())),
           ),
         ],
       ),
@@ -77,12 +73,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ]),
                   const SizedBox(height: 12),
                   _quickTemplateSection(context),
+                  const SizedBox(height: 16),
+                  _sectionHeader('Recent Bills', (){
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const BillListScreen()));
+                  }),
+                  if(billProvider.isLoading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
                   if(filtered.isNotEmpty)
                     ...[
-                      const SizedBox(height: 16),
-                      _sectionHeader('Recent Bills', (){
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const BillListScreen()));
-                      }),
                       // _buildSearchBar(Theme.of(context)),
                       const SizedBox(height: 5),
                     ],
@@ -192,7 +193,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }),
         SizedBox(
           height: 200, // enough to show 2 rows
-          child: SingleChildScrollView(
+          child: templates.isLoading ? Center(child: CircularProgressIndicator()) : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Wrap(
@@ -208,7 +209,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     splashColor: const Color(0xFFFFC857).withValues(alpha: 0.2),
                     highlightColor: Colors.white10,
                     onTap: () {
-                      _showTemplateBottomSheet(context, t);
+                      // _showTemplateBottomSheet(context, t);
                     },
                     child: Ink(
                       width: 100,

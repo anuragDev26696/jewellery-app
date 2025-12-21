@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swarn_abhushan/models/payment.dart';
 import 'package:swarn_abhushan/providers/payment_provider.dart';
+import 'package:swarn_abhushan/screens/edit_bill_screen.dart';
 import 'package:swarn_abhushan/services/billling_service.dart';
 import 'package:swarn_abhushan/utils/constant.dart';
 import 'package:swarn_abhushan/utils/toastr.dart';
@@ -96,9 +97,20 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
       appBar: AppBar(
         title: const Text('Bill Preview'),
         actions: [
+          if(_bill.paymentStatus.label != 'Paid') 
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Update Bill',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => EditBillScreen(bill: _bill)),
+                );
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.share),
-            tooltip: 'Export & Share PDF',
+            tooltip: 'Share PDF',
             onPressed: () => _download(),
           ),
         ],

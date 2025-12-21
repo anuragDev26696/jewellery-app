@@ -17,7 +17,6 @@ ThemeData buildAppTheme() {
 
   final base = ThemeData.dark();
   return base.copyWith(
-    // --- CORE COLORS ---
     primaryColor: gold,
     scaffoldBackgroundColor: darkSurface, // darkBg is now darkSurface
     cardColor: elevatedCardColor, // Used for Card/ListTile backgrounds
@@ -39,7 +38,7 @@ ThemeData buildAppTheme() {
       foregroundColor: offWhite,
       elevation: 0, // Subtle elevation
       titleTextStyle: TextStyle(fontSize: 16, color: offWhite),
-      iconTheme: IconThemeData(color: offWhite),
+      iconTheme: IconThemeData(color: offWhite, size: 18),
     ),
 
     // --- BUTTON THEMES ---

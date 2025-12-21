@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:swarn_abhushan/models/bill.dart';
 import 'package:swarn_abhushan/providers/billing_provider.dart';
 import 'package:swarn_abhushan/screens/bill_preview_screen.dart';
+import 'package:swarn_abhushan/screens/edit_bill_screen.dart';
 import 'package:swarn_abhushan/screens/pdf_view.dart';
 import 'package:swarn_abhushan/services/billling_service.dart';
 import 'package:swarn_abhushan/utils/toastr.dart';
@@ -79,16 +80,21 @@ class _BillItem extends ConsumerState<BillItem> {
       ),
       trailing: PopupMenuButton<String>(
         onSelected: (v) async {
-          if (v == 'delete') {
+          if(v == 'edit'){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => EditBillScreen(bill: widget.bill)),
+            );
+          } else if (v == 'delete') {
             await _deleteAction();
           } else if (v == 'export') {
             await downloadInvoicePdf();
             // Navigator.push(context, MaterialPageRoute(builder: (_) => BillPreviewScreen(bill: widget.bill, autoExportPdf: true)));
           }
         },
-        itemBuilder: (ctx) => const [
-          // PopupMenuItem(value: 'view', child: Text('View')),
-          PopupMenuItem(value: 'export', child: Text('Export & Share PDF')),
+        itemBuilder: (ctx) => [
+          if (widget.status.label != 'Paid') PopupMenuItem(value: 'edit', child: Text('Update Bill')),
+          PopupMenuItem(value: 'export', child: Text('Share Bill PDF')),
           PopupMenuItem(value: 'delete', child: Text('Delete')),
         ],
       ),
@@ -166,13 +172,6 @@ class _BillItem extends ConsumerState<BillItem> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        // shape: RoundedRectangleBorder(
-        //   borderRadius: BorderRadius.circular(15.0),
-        //   side: BorderSide(
-        //     color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-        //     width: 1.0,
-        //   ),
-        // ),
         title: const Text('Are you sure you want to delete?', textAlign: TextAlign.center,),
         actionsAlignment: MainAxisAlignment.center,
         actionsOverflowButtonSpacing: 12.0,
@@ -215,7 +214,7 @@ class _BillItem extends ConsumerState<BillItem> {
         Toastr.show('Invalid template id', success: false);
         return;
       }
-      await _service.deleteBill(widget.bill.uuid!);
+      await ref.read(billingNotifierProvider.notifier).deleteBill(widget.bill.uuid!);
     }
   }
 }

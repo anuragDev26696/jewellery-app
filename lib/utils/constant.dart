@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:printing/printing.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 import 'package:swarn_abhushan/models/item.dart';
 
 final GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>();
@@ -49,4 +51,75 @@ String? isRequired(String? v, String field) => (v == null || v.isEmpty) ? 'Pleas
 
 void sharePdf(Uint8List localPath, String fileName) {
   Printing.sharePdf(bytes: localPath, filename: fileName);
+}
+
+class TwoDecimalNumberFormatter extends TextInputFormatter {
+  final double? maxValue; // <-- NEW OPTIONAL PARAM
+
+  TwoDecimalNumberFormatter({this.maxValue});
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    String text = newValue.text;
+
+    // ---------- RULE 1: ZERO REPLACEMENT ----------
+    // If previous = "0" and user types a number => replace 0
+    if (oldValue.text == "0" && text.length == 2 && text.startsWith("0")) {
+      text = text.substring(1); // remove first 0
+    }
+
+    // ---------- RULE 2: ONLY ONE DECIMAL POINT ----------
+    if ('.'.allMatches(text).length > 1) {
+      return oldValue;
+    }
+
+    // ---------- RULE 3: MAX 2 DECIMAL DIGITS ----------
+    if (text.contains(".")) {
+      final parts = text.split(".");
+      if (parts.length > 1 && parts[1].length > 2) {
+        return oldValue; // block input
+      }
+    }
+
+    // ---------- RULE 4: ONLY VALID NUMBER CHARACTERS ----------
+    final pattern = RegExp(r'^\d*\.?\d{0,2}$');
+    if (!pattern.hasMatch(text)) {
+      return oldValue;
+    }
+
+    // RULE 5: NEW — Max Value Check (only when provided)
+    if (maxValue != null && text.isNotEmpty) {
+      final value = double.tryParse(text);
+      if (value != null && value > maxValue!) {
+        return oldValue; // block input
+      }
+    }
+
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+}
+class CommonUtils {
+  static Widget buildLabel(String label, String controlName, FormGroup form) {
+    final control = form.control(controlName);
+    final isRequired = control.validators.any((v) => v == Validators.required);
+    
+    return Text.rich(
+      TextSpan(
+        text: label,
+        children: [
+          if (isRequired)
+            const TextSpan(
+              text: ' *',
+              style: TextStyle(color: Colors.red),
+            ),
+        ],
+      ),
+    );
+  }
 }

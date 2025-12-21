@@ -47,7 +47,7 @@ class BillingService {
         body: {
           if(keyword != null && keyword.trim().isNotEmpty) 'keyword': keyword,
           if(status != null && status.trim().isNotEmpty) 'billStatus': status,
-          if(customerId != null && customerId.trim().isNotEmpty) 'customerId': customerId,
+          if(customerId != null && customerId.trim().isNotEmpty) 'userId': customerId,
           'page': page,
           'limit': limit,
         }
