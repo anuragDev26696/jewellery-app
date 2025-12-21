@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:swarn_abhushan/models/item.dart';
 import 'package:swarn_abhushan/providers/templates_provider.dart';
 import 'package:swarn_abhushan/screens/billing_list_screen.dart';
 import 'package:swarn_abhushan/screens/templates_screen.dart';
@@ -261,52 +260,52 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _showTemplateBottomSheet(BuildContext context, Item item) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF121212),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              item.name,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            // const SizedBox(height: 10),
-            // Image.asset(item["image"]!, height: 120),
-            const SizedBox(height: 10),
-            const Text(
-              "Do you want to add this item to your current bill?",
-              style: TextStyle(color: Colors.white70, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFFC857),
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              icon: const Icon(Icons.add),
-              label: const Text("Add to Bill"),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // void _showTemplateBottomSheet(BuildContext context, Item item) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     backgroundColor: const Color(0xFF121212),
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  //     ),
+  //     builder: (_) => Padding(
+  //       padding: const EdgeInsets.all(16.0),
+  //       child: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Text(
+  //             item.name,
+  //             style: const TextStyle(
+  //               color: Colors.white,
+  //               fontSize: 18,
+  //               fontWeight: FontWeight.w600,
+  //             ),
+  //           ),
+  //           // const SizedBox(height: 10),
+  //           // Image.asset(item["image"]!, height: 120),
+  //           const SizedBox(height: 10),
+  //           const Text(
+  //             "Do you want to add this item to your current bill?",
+  //             style: TextStyle(color: Colors.white70, fontSize: 14),
+  //             textAlign: TextAlign.center,
+  //           ),
+  //           const SizedBox(height: 16),
+  //           ElevatedButton.icon(
+  //             style: ElevatedButton.styleFrom(
+  //               backgroundColor: const Color(0xFFFFC857),
+  //               foregroundColor: Colors.black,
+  //               shape: RoundedRectangleBorder(
+  //                 borderRadius: BorderRadius.circular(10),
+  //               ),
+  //             ),
+  //             icon: const Icon(Icons.add),
+  //             label: const Text("Add to Bill"),
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //             },
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }
