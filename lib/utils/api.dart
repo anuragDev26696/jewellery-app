@@ -13,7 +13,7 @@ class Api {
     'ngrok-skip-browser-warning': 'true',
   };
   // final String baseUrl = 'https://jewelry-backend-xu5k.onrender.com/api/';
-  final String baseUrl = 'quietistic-uniterative-heide.ngrok-free.dev/api/';
+  final String baseUrl = 'https://quietistic-uniterative-heide.ngrok-free.dev/api/';
   final String devUrl = 'http://10.252.52.118:4000/api/';
 
   Future<Map<String, dynamic>> _send(
@@ -23,7 +23,7 @@ class Api {
     Map<String, String>? queryParameters,
     dynamic body,
   }) async {
-    Uri uri = Uri.parse(devUrl + path);
+    Uri uri = Uri.parse(baseUrl + path);
     if (queryParameters != null && queryParameters.isNotEmpty) {
       uri = uri.replace(queryParameters: {...uri.queryParameters, ...queryParameters});
     }

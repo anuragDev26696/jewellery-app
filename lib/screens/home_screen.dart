@@ -43,7 +43,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     Future.microtask(() async {
-      await ref.read(templateNotifierProvider.notifier).searchItems(null);
+      // await ref.read(templateNotifierProvider.notifier).searchItems(null);
       await ref.read(billingNotifierProvider.notifier).fetchBills(null, 1, 5);
       await fetchChartData();
     });
