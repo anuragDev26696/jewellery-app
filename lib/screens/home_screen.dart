@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swarn_abhushan/models/bill.dart';
 import 'package:swarn_abhushan/providers/templates_provider.dart';
+import 'package:swarn_abhushan/screens/billing_chart.dart';
 import 'package:swarn_abhushan/screens/billing_list_screen.dart';
+import 'package:swarn_abhushan/screens/payment_history_screen.dart';
 import 'package:swarn_abhushan/screens/templates_screen.dart';
 import 'package:swarn_abhushan/screens/users_screen.dart';
 import 'package:swarn_abhushan/utils/banner_carousel.dart';
 import 'package:swarn_abhushan/utils/bill_item.dart';
+import 'package:swarn_abhushan/utils/chart.dart';
 import 'new_bill_screen.dart';
 import '../providers/billing_provider.dart';
 
@@ -18,6 +22,22 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchCtrl = TextEditingController();
+  DateTime activeDate = DateTime.now();
+  List<BillingChartModel> chartData = [];
+  bool isLoading = false;
+  
+  Future<void> fetchChartData() async {
+    setState(() => isLoading = true);
+
+    try {
+      final data = await ref.read(billingServiceProvider).fetchChartData(activeDate.year);
+      setState(() => chartData = data);
+    } catch (e) {
+      debugPrint(e.toString());
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   void initState() {
@@ -25,6 +45,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Future.microtask(() async {
       await ref.read(templateNotifierProvider.notifier).searchItems(null);
       await ref.read(billingNotifierProvider.notifier).fetchBills(null, 1, 5);
+      await fetchChartData();
     });
   }
 
@@ -40,22 +61,76 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final filtered = billProvider.bills.take(5).toList();
 
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+              ),
+              child: Column(
+                spacing: 8.0,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(50.0),
+                    child: Image.asset('assets/logos/swarn_aabhushan_1.png', width: 100, height: 100, semanticLabel: 'Swarn Abhushan', fit: BoxFit.cover, scale: 2,),
+                  ),
+                  Text('Swarn Abhushan'),
+                ],
+              ),
+            ),
+            ListTile(
+              title: const Text('Templates'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const TemplatesScreen()));
+              },
+              leading: const Icon(Icons.receipt_long, size: 18.0,),
+            ),
+            ListTile(
+              title: const Text('Users'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const UserListPage()));
+              },
+              leading: const Icon(Icons.people_alt_sharp, size: 18.0,),
+            ),
+            ListTile(
+              title: const Text('Chart'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const BillingChartScreen()));
+              },
+              leading: const Icon(Icons.bar_chart, size: 18.0,),
+            ),
+            ListTile(
+              title: const Text('Payment History'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentHistoryScreen()));
+              },
+              leading: const Icon(Icons.history, size: 18.0,),
+            ),
+          ],
+        ),
+      ),
       appBar: AppBar(
         title: const Text('Swarn Abhushan'),
-        leading: Padding(padding: EdgeInsets.only(left: 16.0), child: Image.asset('assets/logos/swarn_aabhushan.png', width: 30, height: 30, semanticLabel: 'Swarn Abhushan', fit: BoxFit.contain,),),
+        // leading: Padding(padding: EdgeInsets.only(left: 16.0), child: Image.asset('assets/logos/swarn_aabhushan.png', width: 30, height: 30, semanticLabel: 'Swarn Abhushan', fit: BoxFit.contain,),),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            splashRadius: 1,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         // leadingWidth: 50,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.receipt_long),
-            tooltip: 'Templates',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TemplatesScreen())),
-          ),
-          IconButton(
-            icon: const Icon(Icons.people_alt_sharp),
-            tooltip: 'Users',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UserListPage())),
-          ),
-        ],
       ),
       body: SafeArea(
         child: CustomScrollView(
@@ -71,28 +146,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     BannerItem(imagePath: "assets/images/jewellery_4.jpg", tagline: 'Gold Purity You Can Trust'),
                   ]),
                   const SizedBox(height: 12),
-                  _quickTemplateSection(context),
-                  const SizedBox(height: 16),
-                  _sectionHeader('Recent Bills', (){
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const BillListScreen()));
-                  }),
-                  if(billProvider.isLoading)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32.0),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                  if(filtered.isNotEmpty)
-                    ...[
-                      // _buildSearchBar(Theme.of(context)),
-                      const SizedBox(height: 5),
-                    ],
+                  // _quickTemplateSection(context),
                 ],
               ),
+            ),
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  _sectionHeader('Recent Bills', (){
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const BillListScreen()));
+                    }),
+                    if(billProvider.isLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 32.0),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                  const SizedBox(height: 16),
+                ],
+              )
             ),
             SliverList.separated(
               itemBuilder: (ctx, i) => BillItem(bill: filtered[i], status: filtered[i].paymentStatus),
               separatorBuilder: (_, __) => const Divider(height: 1, thickness: 1, color: Color.fromARGB(255, 45, 45, 45),),
               itemCount: filtered.length,
+            ),
+            SliverToBoxAdapter(
+              child: Card(
+                elevation: 0,
+                margin: EdgeInsets.all(12.0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: const Text('Billing Chart'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SizedBox(height: 200, child: Chart(chartData: chartData)),
+                    ),
+                  ],
+                ),
+              ),
             ),
             SliverToBoxAdapter(),
           ],

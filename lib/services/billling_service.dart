@@ -78,4 +78,10 @@ class BillingService {
       _loaderService.hide();
     }
   }
+
+  Future<List<BillingChartModel>> fetchChartData(int year) async {
+    final res = await _api.get('billings/chart?year=$year');
+    final List data = res['data'] ?? [];
+    return data.map((e) => BillingChartModel.fromJson(e)).toList();
+  }
 }

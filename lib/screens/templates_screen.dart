@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swarn_abhushan/utils/constant.dart';
 import 'package:swarn_abhushan/utils/item_form_dialog.dart';
 import 'package:swarn_abhushan/utils/toastr.dart';
 import '../providers/templates_provider.dart';
@@ -121,7 +122,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
                 final t = state.items[i];
                 return ListTile(
                   title: Text(t.name.isNotEmpty ? t.name : t.type, style: TextStyle(fontSize: 16.0),),
-                  subtitle: Text('Wt:${t.weight}g • Rate: ₹${t.pricePerGram}/g • Making: ${t.makingCharge}%', style: TextStyle(color: Colors.white54, fontSize: 12.0),),
+                  subtitle: Text('Wt:${t.weight}g • Rate: ${CommonUtils.formatCurrency(t.pricePerGram)}/g • Making: ${t.makingCharge}%', style: TextStyle(color: Colors.white54, fontSize: 12.0),),
                   trailing: Wrap(children: [
                     IconButton(icon: const Icon(Icons.edit), onPressed: () => _openAddDialog(edit: t), color: offWhite.withValues(alpha: 0.8),),
                     IconButton(icon: const Icon(Icons.delete), onPressed: () async {

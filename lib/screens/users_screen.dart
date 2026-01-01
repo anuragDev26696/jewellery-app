@@ -56,6 +56,17 @@ class _UserListPageState extends ConsumerState<UserListPage> {
       appBar: AppBar(
         title: const Text('User List'),
       ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: ElevatedButton.icon(
+          onPressed: () => _openBottomSheet(context, null),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 48),
+          ),
+          icon: const Icon(Icons.add),
+          label: const Text('Add New User'),
+        ),
+      ),
       body: userState.users.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -131,7 +142,7 @@ class _UserListPageState extends ConsumerState<UserListPage> {
     ];
   }
   
-  void _openBottomSheet(BuildContext context, User user) {
+  void _openBottomSheet(BuildContext context, User? user) {
     FormGroup? formGroup;
     bool isValidForm = false;
 
@@ -142,6 +153,7 @@ class _UserListPageState extends ConsumerState<UserListPage> {
       enableDrag: false,
       builder: (context) {
         return StatefulBuilder(builder: (BuildContext context, StateSetter setSheetState) {
+          final userState = ref.watch(userNotifierProvider);
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -158,28 +170,34 @@ class _UserListPageState extends ConsumerState<UserListPage> {
                     onFormStatusChange: (status) {
                       setSheetState(() => isValidForm = status);
                     },
-                    onSaved: (updatedUser) async {
-                      await ref.read(userNotifierProvider.notifier).updateUser(updatedUser);
-                      if (context.mounted) Navigator.pop(context);
-                    },
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.all(16.0),
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: isValidForm
-                      ? () {
+                    onPressed: isValidForm && !userState.isAdding
+                      ? () async {
                         if (formGroup != null) {
-                          final updatedUser = User(
-                            uuid: user.uuid,
-                            name: formGroup!.control('name').value,
-                            mobile: formGroup!.control('mobile').value,
-                            email: formGroup!.control('email').value,
-                            address: formGroup!.control('address').value,
-                          );
-                          Navigator.pop(context);
-                          ref.read(userNotifierProvider.notifier).updateUser(updatedUser);
+                          try {
+                            final updatedUser = User(
+                              uuid: user?.uuid,
+                              name: formGroup!.control('name').value,
+                              mobile: formGroup!.control('mobile').value,
+                              email: formGroup!.control('email').value,
+                              address: formGroup!.control('address').value,
+                            );
+                            if(user == null) {
+                              await ref.read(userNotifierProvider.notifier).addUser(updatedUser);
+                            } else {
+                              await ref.read(userNotifierProvider.notifier).updateUser(updatedUser);
+                            }
+                            if(context.mounted) Navigator.pop(context);                          
+                          } catch (e) {
+                            // Handle any errors during navigation
+                            debugPrint('form value: ${formGroup!.value}');
+                            debugPrint('Error: $e');
+                          }
                         }
                       }
                       : null,

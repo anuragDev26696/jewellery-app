@@ -141,10 +141,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 1: FlexColumnWidth(1),
               },
               children: [
-                _buildRow("Total", "₹${calc.subtotal.toStringAsFixed(2)}"),
-                _buildRow("Making", "₹${calc.totalMaking.toStringAsFixed(2)}"),
-                _buildRow("Discount", "₹${discount.toStringAsFixed(2)}"),
-                _buildRow("Tax (${_taxCtrl.text}%)", "₹${calc.taxAmount.toStringAsFixed(2)}"),
+                _buildRow("Total", CommonUtils.formatCurrency(calc.subtotal)),
+                _buildRow("Making", CommonUtils.formatCurrency(calc.totalMaking)),
+                _buildRow("Discount", CommonUtils.formatCurrency(discount)),
+                _buildRow("Tax (${_taxCtrl.text}%)", CommonUtils.formatCurrency(calc.taxAmount)),
                 TableRow(
                   children: [
                     const Padding(
@@ -159,7 +159,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 ),
                 _buildRow(
                   "Grand Total",
-                  "₹${calc.grandTotal.toStringAsFixed(2)}",
+                  CommonUtils.formatCurrency(calc.grandTotal),
                   isBold: true,
                 ),
               ],

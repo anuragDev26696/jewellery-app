@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swarn_abhushan/utils/constant.dart';
 import '../providers/billing_provider.dart';
 import 'bill_preview_screen.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +26,7 @@ class CustomerLedgerScreen extends ConsumerWidget {
                   return Card(
                     child: ListTile(
                       title: Text(e.customerName.isNotEmpty ? e.customerName : (e.customerPhone.isNotEmpty ? e.customerPhone : 'Customer')),
-                      subtitle: Text('${e.billCount} bill(s) • Total: ₹ ${e.totalAmount.toStringAsFixed(2)}'),
+                      subtitle: Text('${e.billCount} bill(s) • Total: ${CommonUtils.formatCurrency(e.totalAmount)}'),
                       trailing: IconButton(
                         icon: const Icon(Icons.visibility),
                         onPressed: () {
@@ -41,7 +42,7 @@ class CustomerLedgerScreen extends ConsumerWidget {
                                     itemBuilder: (c, idx) {
                                       final b = e.bills[idx];
                                       return ListTile(
-                                        title: Text('${DateFormat.yMMMd().format(b.createdAt!)} • ₹ ${b.grandTotal.toStringAsFixed(2)}'),
+                                        title: Text('${DateFormat.yMMMd().format(b.createdAt!)} • ${CommonUtils.formatCurrency(b.grandTotal)}'),
                                         subtitle: Text('Items: ${b.items.length}'),
                                         onTap: () {
                                           Navigator.pop(ctx);
