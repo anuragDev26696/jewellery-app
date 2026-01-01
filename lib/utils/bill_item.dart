@@ -9,6 +9,7 @@ import 'package:swarn_abhushan/screens/bill_preview_screen.dart';
 import 'package:swarn_abhushan/screens/edit_bill_screen.dart';
 import 'package:swarn_abhushan/screens/pdf_view.dart';
 import 'package:swarn_abhushan/services/billling_service.dart';
+import 'package:swarn_abhushan/utils/constant.dart';
 import 'package:swarn_abhushan/utils/toastr.dart';
 
 class BillItem extends ConsumerStatefulWidget {
@@ -71,7 +72,7 @@ class _BillItem extends ConsumerState<BillItem> {
               style: const TextStyle(fontSize: 12.5, color: Colors.grey),
             ),
             Text(
-              ' • ₹ ${widget.bill.total!.toStringAsFixed(2)}',
+              ' • ${CommonUtils.formatCurrency(widget.bill.total!)}',
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
             ),
             _statusChip(widget.status),

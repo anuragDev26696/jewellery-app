@@ -10,9 +10,11 @@ class Api {
   final Map<String, String> defaultHeaders = {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
   };
-  final String baseUrl = 'https://jewelry-backend-xu5k.onrender.com/api/';
-  final String devUrl = 'http://10.218.105.118:4000/api/';
+  // final String baseUrl = 'https://jewelry-backend-xu5k.onrender.com/api/';
+  final String baseUrl = 'quietistic-uniterative-heide.ngrok-free.dev/api/';
+  final String devUrl = 'http://10.252.52.118:4000/api/';
 
   Future<Map<String, dynamic>> _send(
     String method,
@@ -21,7 +23,7 @@ class Api {
     Map<String, String>? queryParameters,
     dynamic body,
   }) async {
-    Uri uri = Uri.parse(baseUrl + path);
+    Uri uri = Uri.parse(devUrl + path);
     if (queryParameters != null && queryParameters.isNotEmpty) {
       uri = uri.replace(queryParameters: {...uri.queryParameters, ...queryParameters});
     }

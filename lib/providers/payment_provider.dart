@@ -62,18 +62,34 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
   List<Payment> getPaymentsByBill(String billId) {
     return state.items.where((p) => p.billId == billId).toList();
   }
-
-  double getPaidAmount(String billId) {
-    return getPaymentsByBill(billId).fold(0.0, (p, e) => p + e.amount);
-  }
   
-  List<Payment> searchPayment(String query) {
-    if (query.trim().isEmpty) return state.items;
-    final q = query.toLowerCase();
-    return state.items.where((b) {
-      final byName = b.customerName.toLowerCase().contains(q);
-      return byName;
-    }).toList();
+  Future<void> searchPayment({String? billId, int page = 1, int limit = 20}) async {
+    state = state.copyWith(isLoading: true);
+    _loader.show();
+    try {
+      final res = await _service.getPaymentsForBill({
+        if (billId != null) 'billId': billId,
+        'page': page,
+        'limit': limit,
+      });
+      final List<Payment> payments = List<Payment>.from(
+        (res['data'] as List).map(
+          (e) => Payment.fromMap(e as Map<String, dynamic>),
+        ),
+      );
+      await load(
+        items: payments,
+        total: res['total'] as int,
+        page: res['page'] as int,
+        limit: res['limit'] as int,
+        isLastPage: res['isLastPage'] as bool,
+        isPreviousPage: res['isPreviousPage'] as bool,
+        append: page > 1,
+      );
+    } finally {
+      state = state.copyWith(isLoading: false);
+      _loader.hide();
+    }
   }
 }
 

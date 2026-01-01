@@ -159,7 +159,7 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
                         child: ListTile(
                           title: Text(it.name.isNotEmpty ? it.name : it.type),
                           subtitle: Text(
-                              'Wt: ${it.weight}g • Rate: ₹${it.pricePerGram.toStringAsFixed(2)} • Making: ${it.makingCharge.toStringAsFixed(2)}% • Total: ₹${it.total.toStringAsFixed(2)}'),
+                              'Wt: ${it.weight}g • Rate: ${CommonUtils.formatCurrency(it.pricePerGram)} • Making: ${it.makingCharge.toStringAsFixed(2)}% • Total: ${CommonUtils.formatCurrency(it.total)}'),
                           isThreeLine: true,
                           trailing: PopupMenuButton<String>(
                             onSelected: (v) {
@@ -187,11 +187,11 @@ class _NewBillScreenState extends ConsumerState<NewBillScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Subtotal: ₹ ${calc.subtotal.toStringAsFixed(2)}'),
-                            Text('Making: ₹ ${calc.totalMaking.toStringAsFixed(2)}'),
+                            Text('Subtotal: ${CommonUtils.formatCurrency(calc.subtotal)}'),
+                            Text('Making: ${CommonUtils.formatCurrency(calc.totalMaking)}'),
                             const SizedBox(height: 6),
                             Text(
-                              'Grand Total: ₹ ${calc.grandTotal.toStringAsFixed(2)}',
+                              'Grand Total: ${CommonUtils.formatCurrency(calc.grandTotal)}',
                               style: TextStyle(fontWeight: FontWeight.bold, color: gold),
                             ),
                           ],

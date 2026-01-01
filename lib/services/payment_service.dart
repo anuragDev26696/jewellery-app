@@ -33,31 +33,15 @@ class PaymentService {
   }
 
   /// Get all payments for a bill
-  Future<List<Payment>> getPaymentsForBill(String billId, int page) async {
+  Future<dynamic> getPaymentsForBill(Map<String, dynamic> filters) async {
     try {
-      _loader.show();
-      final response = await _api.post('payment/search', body: {
-        "billId": billId,
-        'page': 1,
-        'limit': 50,
-      });
+      final response = await _api.post('payment/search', body: filters);
 
-      final List data = response['data'] ?? [];
-      final payments = data.map((e) => Payment.fromMap(e)).toList();
-      await _paymentNotifier.load(
-        items: payments, 
-        total: response['total'] ?? payments.length,
-        page: response['page'] ?? 1,
-        limit: response['limit'] ?? 50,
-        isLastPage: response['isLastPage'] ?? false,
-        isPreviousPage: response['isPreviousPage'] ?? false,
-        append: page > 1,
-      );
-      return payments;
+      // final List data = response['data'] ?? [];
+      // final payments = data.map((e) => Payment.fromMap(e)).toList();
+      return response;
     } catch(e) {
       rethrow;
-    } finally {
-      _loader.hide();
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swarn_abhushan/models/item.dart';
 import 'package:swarn_abhushan/providers/templates_provider.dart';
 import 'package:swarn_abhushan/screens/templates_screen.dart';
+import 'package:swarn_abhushan/utils/constant.dart';
 
 class BillItemHeader extends ConsumerWidget {
   final int itemCount;
@@ -125,7 +126,7 @@ class BillItemHeader extends ConsumerWidget {
                             style: TextStyle(color: cs.onSurface),
                           ),
                           subtitle: Text(
-                            'Wt: ${t.weight}g • Rate: ₹${t.pricePerGram} • Making: ₹${t.makingCharge}',
+                            'Wt: ${t.weight}g • Rate: ${CommonUtils.formatCurrency(t.pricePerGram)} • Making: ${CommonUtils.formatCurrency(t.makingCharge)}',
                             style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7)),
                           ),
                           trailing: IconButton(

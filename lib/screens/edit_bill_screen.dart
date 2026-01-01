@@ -123,7 +123,7 @@ class _EditBillScreenState extends ConsumerState<EditBillScreen> {
                         child: ListTile(
                           title: Text(it.name.isNotEmpty ? it.name : it.type),
                           subtitle: Text(
-                            "Wt: ${it.weight}g • Rate: ₹${it.pricePerGram} • Making: ${it.makingCharge}% • Total: ₹${it.total.toStringAsFixed(2)}"
+                            "Wt: ${it.weight}g • Rate: ${CommonUtils.formatCurrency(it.pricePerGram)} • Making: ${it.makingCharge}% • Total: ${CommonUtils.formatCurrency(it.total)}"
                           ),
                           subtitleTextStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
                           isThreeLine: true,
@@ -226,7 +226,7 @@ class _EditBillScreenState extends ConsumerState<EditBillScreen> {
         child: Align(
           alignment: Alignment.centerRight,
           child: Text(
-            "₹${value.toStringAsFixed(2)}",
+            CommonUtils.formatCurrency(value),
             style: TextStyle(
               fontWeight: bold ? FontWeight.bold : FontWeight.normal,
               fontSize: 15,

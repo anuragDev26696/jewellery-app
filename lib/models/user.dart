@@ -18,11 +18,11 @@ class User {
   });
 
   Map<String, dynamic> toMap() => {
-    if(uuid!.trim().isNotEmpty) 'uuid': uuid,
+    if(uuid != null && uuid!.trim().isNotEmpty) 'uuid': uuid,
     'name': name,
     'mobile': mobile,
-    if(email!.trim().isNotEmpty) 'email': email,
-    if(address!.trim().isNotEmpty)'address': address,
+    if(email != null && email!.trim().isNotEmpty) 'email': email,
+    if(address != null && address!.trim().isNotEmpty)'address': address,
   };
 
   factory User.fromMap(Map<String, dynamic> map) => User(

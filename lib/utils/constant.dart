@@ -1,7 +1,7 @@
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:swarn_abhushan/models/item.dart';
@@ -129,5 +129,9 @@ class CommonUtils {
         ],
       ),
     );
+  }
+
+  static String formatCurrency(double amount) {
+    return NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2).format(amount);
   }
 }

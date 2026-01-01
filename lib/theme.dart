@@ -39,6 +39,7 @@ ThemeData buildAppTheme() {
       elevation: 0, // Subtle elevation
       titleTextStyle: TextStyle(fontSize: 16, color: offWhite),
       iconTheme: IconThemeData(color: offWhite, size: 18),
+      titleSpacing: 0,
     ),
 
     // --- BUTTON THEMES ---
@@ -79,6 +80,10 @@ ThemeData buildAppTheme() {
       backgroundColor: gold,
       foregroundColor: Colors.black87,
       extendedTextStyle: const TextStyle(fontWeight: FontWeight.w600),
+    ),
+
+    drawerTheme: DrawerThemeData(
+      backgroundColor: inputFillColor,
     ),
 
     // --- INPUT FIELDS ---
@@ -158,6 +163,14 @@ ThemeData buildAppTheme() {
       brightness: Brightness.dark,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       surfaceTintColor: gold
+    ),
+    menuTheme: MenuThemeData(
+      style: MenuStyle(
+        backgroundColor: WidgetStateProperty.all(cardColor),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
     ),
   );
 }

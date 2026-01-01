@@ -260,3 +260,26 @@ class BillState {
     );
   }
 }
+
+class BillingChartModel {
+  final int year;
+  final int month;
+  final double? totalAmount;
+  final double totalItems;
+
+  BillingChartModel({
+    required this.year,
+    required this.month,
+    required this.totalItems,
+    this.totalAmount,
+  });
+
+  factory BillingChartModel.fromJson(Map<String, dynamic> json) {
+    return BillingChartModel(
+      year: json['year'],
+      month: json['month'],
+      totalItems: json['totalItems'] != null ? (json['totalItems'] as num).toDouble() : 0.0,
+      totalAmount: json['totalAmount'] != null ? (json['totalAmount'] as num).toDouble() : null,
+    );
+  }
+}

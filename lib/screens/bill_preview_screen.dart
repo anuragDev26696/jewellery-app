@@ -51,7 +51,7 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
 
   Future<void> _fetchBillPayments() async {
     if(_bill.uuid == null || _bill.uuid!.trim().isEmpty) return;
-    await ref.read(paymentServiceProvider).getPaymentsForBill(_bill.uuid!, 1);
+    await ref.read(paymentNotifierProvider.notifier).searchPayment(billId: _bill.uuid!, page:1);
   }
 
   @override
@@ -239,8 +239,8 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
     final gold = Theme.of(context).colorScheme.primary;
     return ListTile(
       title: Text(item.name.isNotEmpty ? item.name : item.type),
-      subtitle: Text('Wt: ${item.weight}g • ₹${item.pricePerGram.toStringAsFixed(2)} • Making: ${item.makingCharge.toStringAsFixed(2)}%', style: TextStyle(fontSize: 12.0, color: Colors.grey, fontWeight: FontWeight.normal),),
-      trailing: Text('₹ ${item.total.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.bold, color: gold)),
+      subtitle: Text('Wt: ${item.weight}g • ${CommonUtils.formatCurrency(item.pricePerGram)} • Making: ${item.makingCharge.toStringAsFixed(2)}%', style: TextStyle(fontSize: 12.0, color: Colors.grey, fontWeight: FontWeight.normal),),
+      trailing: Text(CommonUtils.formatCurrency(item.total), style: TextStyle(fontWeight: FontWeight.bold, color: gold)),
     );
   }
 
@@ -255,7 +255,7 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
         return ListTile(
           title: p.createdAt != null ? Text(DateFormat.yMMMd().format(p.createdAt!),) : null,
           subtitle: Text(p.paymentMode, style: TextStyle(fontSize: 12.0)),
-          trailing: Text('₹${p.amount.toStringAsFixed(2)}', style: TextStyle(color: Color(0xFFFFC857)),),
+          trailing: Text(CommonUtils.formatCurrency(p.amount), style: TextStyle(color: Color(0xFFFFC857)),),
         );
       },
     );
@@ -269,7 +269,7 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: isTotal ? TextStyle(fontWeight: FontWeight.bold, color: gold) : null),
-          Text('${isNegative ? '-' : ''} ₹ ${amount.toStringAsFixed(2)}', style: isTotal ? TextStyle(fontWeight: FontWeight.bold, color: gold) : null),
+          Text('${isNegative ? '-' : ''} ${CommonUtils.formatCurrency(amount)}', style: isTotal ? TextStyle(fontWeight: FontWeight.bold, color: gold) : null),
         ],
       ),
     );
@@ -320,7 +320,7 @@ class _BillPreviewScreenState extends ConsumerState<BillPreviewScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text('₹${balance.toStringAsFixed(2)}'),
+                    Text(CommonUtils.formatCurrency(balance)),
                   ],
                 ),
                 const SizedBox(height: 12.0),
