@@ -7,6 +7,7 @@ import 'package:swarn_abhushan/screens/billing_list_screen.dart';
 import 'package:swarn_abhushan/screens/payment_history_screen.dart';
 import 'package:swarn_abhushan/screens/templates_screen.dart';
 import 'package:swarn_abhushan/screens/users_screen.dart';
+import 'package:swarn_abhushan/services/auth_service.dart';
 import 'package:swarn_abhushan/utils/banner_carousel.dart';
 import 'package:swarn_abhushan/utils/bill_item.dart';
 import 'package:swarn_abhushan/utils/chart.dart';
@@ -62,60 +63,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
+        child: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                child: Column(
+                  spacing: 8.0,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(50.0),
+                      child: Image.asset('assets/logos/swarn_aabhushan_1.png', width: 100, height: 100, semanticLabel: 'Swarn Abhushan', fit: BoxFit.cover, scale: 2,),
+                    ),
+                    Text('Swarn Abhushan'),
+                  ],
+                ),
               ),
-              child: Column(
-                spacing: 8.0,
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(50.0),
-                    child: Image.asset('assets/logos/swarn_aabhushan_1.png', width: 100, height: 100, semanticLabel: 'Swarn Abhushan', fit: BoxFit.cover, scale: 2,),
-                  ),
-                  Text('Swarn Abhushan'),
-                ],
+              ListTile(
+                title: const Text('Templates'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TemplatesScreen()));
+                },
+                leading: const Icon(Icons.receipt_long, size: 18.0,),
               ),
-            ),
-            ListTile(
-              title: const Text('Templates'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const TemplatesScreen()));
-              },
-              leading: const Icon(Icons.receipt_long, size: 18.0,),
-            ),
-            ListTile(
-              title: const Text('Users'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const UserListPage()));
-              },
-              leading: const Icon(Icons.people_alt_sharp, size: 18.0,),
-            ),
-            ListTile(
-              title: const Text('Chart'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const BillingChartScreen()));
-              },
-              leading: const Icon(Icons.bar_chart, size: 18.0,),
-            ),
-            ListTile(
-              title: const Text('Payment History'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentHistoryScreen()));
-              },
-              leading: const Icon(Icons.history, size: 18.0,),
-            ),
-          ],
+              ListTile(
+                title: const Text('Users'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const UserListPage()));
+                },
+                leading: const Icon(Icons.people_alt_sharp, size: 18.0,),
+              ),
+              ListTile(
+                title: const Text('Chart'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const BillingChartScreen()));
+                },
+                leading: const Icon(Icons.bar_chart, size: 18.0,),
+              ),
+              ListTile(
+                title: const Text('Payment History'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentHistoryScreen()));
+                },
+                leading: const Icon(Icons.history, size: 18.0,),
+              ),
+              ListTile(
+                title: Text('Log out', style: TextStyle(color: Colors.red),),
+                onTap: () {
+                  final service = AuthService(ref);
+                  service.logout(context);
+                },
+                leading: Icon(Icons.logout, size: 18.0, color: Colors.red,),
+                splashColor: const Color.fromARGB(255, 251, 221, 224),
+              ),
+            ],
+          ),
         ),
       ),
       appBar: AppBar(
@@ -179,6 +191,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     ListTile(
                       title: const Text('Billing Chart'),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16,),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
+                      ),
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const BillingChartScreen()));
+                      },
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16),

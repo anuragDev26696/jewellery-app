@@ -42,6 +42,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
     } catch (e) {
       state = state.copyWith(isAdding: false, error: e.toString());
     } finally {
+      state = state.copyWith(isAdding: false);
       _loader.hide();
     }
   }
@@ -62,6 +63,7 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
     } catch (e) {
       state = state.copyWith(isUpdating: false, error: e.toString());
     } finally {
+      state = state.copyWith(isUpdating: false);
       _loader.hide();
     }
   }
@@ -71,15 +73,15 @@ class TemplateNotifier extends StateNotifier<TemplateState> {
       Toastr.show('Invalid item id', success: false);
       return;
     }
-    state = state.copyWith(isUpdating: true, error: null);
+    state = state.copyWith( error: null);
     try {
       _loader.show();
       await _service.deleteItem(id);
       final updatedList = state.items.where((t) => t.uuid != id).toList();
-      state = state.copyWith(items: updatedList, isUpdating: false);
+      state = state.copyWith(items: updatedList);
       Toastr.show('Item deleted successfully');
     } catch (e) {
-      state = state.copyWith(isUpdating: false, error: e.toString());
+      state = state.copyWith(error: e.toString());
     } finally {
       _loader.hide();
     }

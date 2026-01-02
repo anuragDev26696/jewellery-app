@@ -94,7 +94,7 @@ class _BillItem extends ConsumerState<BillItem> {
           }
         },
         itemBuilder: (ctx) => [
-          if (widget.status.label != 'Paid') PopupMenuItem(value: 'edit', child: Text('Update Bill')),
+          if (widget.status.label == 'Pending') PopupMenuItem(value: 'edit', child: Text('Update Bill')),
           PopupMenuItem(value: 'export', child: Text('Share Bill PDF')),
           PopupMenuItem(value: 'delete', child: Text('Delete')),
         ],
