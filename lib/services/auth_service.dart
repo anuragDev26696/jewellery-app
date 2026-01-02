@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swarn_abhushan/screens/login_screen.dart';
 import 'package:swarn_abhushan/services/loader_service.dart';
 import 'package:swarn_abhushan/services/local_storage.dart';
 import 'package:swarn_abhushan/utils/api.dart';
@@ -34,8 +36,13 @@ class AuthService {
     }
   }
 
-  Future<void> logout() async {
+  Future<void> logout(BuildContext context) async {
     await LocalStorage.clearToken();
+    if(!context.mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
   }
   Future<bool> isLoggedIn() async {
     final token = await LocalStorage.getToken();

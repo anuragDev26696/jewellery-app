@@ -13,6 +13,7 @@ class BillingChartScreen extends ConsumerStatefulWidget {
 class _BillingChartScreenState extends ConsumerState<BillingChartScreen> {
   bool isLoading = false;
   DateTime activeDate = DateTime.now();
+  final int currentYear = DateTime.now().year;
   List<BillingChartModel> chartData = [];
   
   @override
@@ -33,6 +34,16 @@ class _BillingChartScreenState extends ConsumerState<BillingChartScreen> {
       setState(() => isLoading = false);
     }
   }
+
+  void onclick(bool isNext) {
+    if(activeDate.year == currentYear && isNext) return;
+    setState(() {
+      activeDate = isNext
+          ? DateTime(activeDate.year + 1)
+          : DateTime(activeDate.year - 1);
+    });
+    fetchChartData();
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -44,11 +55,22 @@ class _BillingChartScreenState extends ConsumerState<BillingChartScreen> {
         child: Column(
           spacing: 12.0,
           children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Text(
+                  'Year: ${activeDate.year}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 260, child: buildChart()),
             Padding(
               padding: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 0.0),
               child: buildNavigation(),
             ),
-            SizedBox(height: 260, child: buildChart()),
           ],
         ),
       ),
@@ -72,18 +94,16 @@ class _BillingChartScreenState extends ConsumerState<BillingChartScreen> {
 
   Widget buildNavigation() {
     return Row(
+      spacing: 8.0,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         ElevatedButton(
-          onPressed: () => setState(() {
-            activeDate = DateTime(activeDate.year - 1);
-          }), 
-          child: const Text('Previous Year'),
+          onPressed: activeDate.year < 2021 ? null : () => onclick(false), 
+          child: const Text('Previous'),
         ),
         ElevatedButton(
-          onPressed: () => setState(() {
-            activeDate = DateTime(activeDate.year + 1);
-          }), 
-          child: const Text('Next Year'),
+          onPressed: activeDate.year == currentYear ? null : () => onclick(true), 
+          child: const Text('Next'),
         ),
       ],
     );

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:swarn_abhushan/providers/templates_provider.dart';
 import '../models/item.dart';
 
-class ItemFormDialog extends StatefulWidget {
+class ItemFormDialog extends ConsumerStatefulWidget {
   final Item? prefill;
   final String title;
   final String confirmText;
@@ -20,10 +22,10 @@ class ItemFormDialog extends StatefulWidget {
   });
 
   @override
-  State<ItemFormDialog> createState() => _ItemFormDialogState();
+  ConsumerState<ItemFormDialog> createState() => _ItemFormDialogState();
 }
 
-class _ItemFormDialogState extends State<ItemFormDialog> {
+class _ItemFormDialogState extends ConsumerState<ItemFormDialog> {
   late final FormGroup itemForm;
 
   @override
@@ -119,8 +121,11 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
               ValueListenableBuilder<bool>(
                 valueListenable: _isFormValid,
                 builder: (context, isValid, child) {
+                  var isAdding = ref.watch(templateNotifierProvider).isAdding;
+                  var isUpdating = ref.watch(templateNotifierProvider).isUpdating;
+                  debugPrint("isAdding $isAdding");
                   return ElevatedButton(
-                    onPressed: isValid ? _handleSubmit : null,
+                    onPressed: isValid && !isAdding && !isUpdating ? _handleSubmit : null,
                     child: Text(widget.confirmText),
                   );
                 },
